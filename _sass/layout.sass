@@ -1,8 +1,20 @@
-body > header, body > footer
+body
+  min-height: 100vh
+  display: flex
+  flex-direction: column
+
+.content
+  flex: 1
+
+body > footer, .content > header
   display: flex
   flex-wrap: wrap
   align-items: center
   justify-content: space-between
+
+body > footer
+  flex-shrink: 0
+  flex-direction: row-reverse
 
 article header
   margin-bottom: 1.5em
