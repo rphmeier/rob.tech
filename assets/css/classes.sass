@@ -51,15 +51,18 @@
   margin: 2em 0 1em
 
 .more a
-  border-radius: 2px
-  border: 1.5px solid $link-color
-  padding: .4em .8em
+  border-radius: 6px
+  padding: .4em .9em .6em
   transition: .2s
+  background-color: lighten($dark, 5%)
+  color: inherit
 
 .more a:hover
   color: #fff
   background: $link-color
   text-decoration: inherit
+  background-color: lighten($dark, 18%)
+  box-shadow: rgba($light, .1)
 
 {% endif %}
 
@@ -86,8 +89,7 @@
 
 .title
   font-size: 1.5em
-  width: 100%
-  margin: .1em 0 .6em
+  font-weight: 500
 
 {% endif %}
 
@@ -104,3 +106,8 @@
     width: 100%
 
 {% endunless %}
+
+.bio p  
+  font-size: 1.4em
+  line-height: 130%
+  font-weight: 500

@@ -1,19 +1,13 @@
-@media (prefers-color-scheme: light)
-  html
-    background: $light
-    color: $dark
-
-@media (prefers-color-scheme: dark)
-  html
-    background: $dark
-    color: $light
+html
+  background: $dark
+  color: $light
 
 html
   font-size: 16px
   font-size: $font-size
 
 body
-  font-family: "PT Sans", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Roboto", sans-serif
+  font-family: "Inter", -apple-system, BlinkMacSystemFont, "Helvetica Neue", "Segoe UI", "Roboto", sans-serif
   font-weight: $font-weight
   line-height: $line-height
   margin: 0
@@ -33,11 +27,18 @@ a
   &:hover
     text-decoration: underline
 
-header a, footer a
+header a
+  color: $mitte
+  &:hover
+    color: $light
+    text-decoration: none
+
+article header a, footer a
   color: inherit
 
 header time
   color: reduce(100)
+  font-size: 0.9em
 
 hr
   border: 1px solid reduce(30)
