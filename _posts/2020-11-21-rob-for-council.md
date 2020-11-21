@@ -23,4 +23,3 @@ I'm a crypto native who's been with Polkadot since day 1. I've been here since b
 
 
 **Vote Rob for Polkadot Council**
-// TODO: address & image
