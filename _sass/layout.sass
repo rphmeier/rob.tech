@@ -1,7 +1,8 @@
 body
-  min-height: 100vh
   display: flex
   flex-direction: column
+  & > .content
+    min-height: 100vh
 
 .content
   flex: 1
@@ -18,12 +19,7 @@ body > footer
   font-size: 0.8rem
 
 article header h1
-  font-size: 1.6em
+  font-size: 1.2rem
   font-weight: 500
   margin: 0 0 .3em
-
-nav
-  margin: .5em -.8em
-
-nav a
-  margin: .5em .8em
+  color: $gray5

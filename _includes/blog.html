@@ -1,18 +1,15 @@
+<article>
+  <span class="article-subtitle">Words subtitle</span>
+</article>
 {%- assign posts = paginator.posts | default: site.posts -%}
 {%- assign num_posts = paginator.total_posts | default: 0 -%}
 {% for post in posts %}
-  <article>
+  <article class="blogpost">
     {% include meta.html post=post preview=true %}
     {{ post.excerpt }}
-    <div class="more"><a href="{{ post.url | relative_url }}">read more</a></div>
+    <div class="more"><a href="{{ post.url | relative_url }}"></a></div>
   </article>
 {% endfor %}
-
-{% if num_posts == 0 %}
-  <article>
-    <p>No content yet!</p>
-  </article>
-{% endif %}
 
 {% if paginator.total_pages > 1 %}
   <footer>

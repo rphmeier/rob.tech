@@ -1,6 +1,6 @@
 html
   background: $dark
-  color: $light
+  color: $gray4
 
 html
   font-size: 16px
@@ -17,9 +17,13 @@ body
 
 h1, h2, h3, h4, h5, h6
   font-weight: $heading-weight
+  color: $gray6
 
 b, strong, th
   font-weight: $font-weight + 200
+
+small
+  font-weight: normal
 
 a
   color: $link-color
@@ -29,23 +33,36 @@ a
 
 header a
   color: $mitte
+  font-weight: $font-weight + 100
+  font-size: 1.4rem
   &:hover
     color: $light
     text-decoration: none
 
+.contact .icons a
+  color: $gray3
+  margin: 0 .5rem
+  &:first-child
+    margin-left: 0
+  &:hover svg
+    color: $light
+
 article header a, footer a
   color: inherit
 
-header time
-  color: reduce(100)
-  font-size: 0.9em
+.article-subtitle
+  display: block
+  margin-bottom: 2em
+
+time
+  color: $gray3
+  font-size: 0.85em
+  margin-bottom: 0.5em
+  display: inline-block
 
 hr
   border: 1px solid reduce(30)
   margin: 2em 0
-
-article:not(:last-child)
-  border-bottom: 1px solid reduce(12)
 
 blockquote
   background: reduce(6)

@@ -3,6 +3,9 @@
 
 @import index, highlight
 
+.hidden
+  visibility: hidden
+
 .archive
   font-size: 1.1em
 
@@ -46,23 +49,18 @@
 {% endif %}
 
 {% if site.show_excerpts %}
-
-.more
-  margin: 2em 0 1em
-
 .more a
+  position: absolute
+  left: 0
+  top: 0
+  width: calc(100% + 2rem)
+  height: calc(100% + 2rem)
+  margin-left: -1rem
+  margin-top: -1rem
   border-radius: 6px
-  padding: .4em .9em .6em
-  transition: .2s
-  background-color: lighten($dark, 5%)
-  color: inherit
-
-.more a:hover
-  color: #fff
-  background: $link-color
-  text-decoration: inherit
-  background-color: lighten($dark, 18%)
-  box-shadow: rgba($light, .1)
+  transition: 0.3s
+  &:hover
+    box-shadow: 0 0 1.5rem rgba(black, .4)
 
 {% endif %}
 
@@ -107,7 +105,46 @@
 
 {% endunless %}
 
-.bio p  
-  font-size: 1.4em
-  line-height: 130%
-  font-weight: 500
+article.blogpost
+  max-width: 36rem
+  margin-bottom: 3rem
+  header, p
+    pointer-events: none  
+
+article.bio
+  min-height: 8rem
+  margin-bottom: 4rem !important
+  & > p
+    max-width: 36rem
+  p, h1
+    font-size: 1.6rem
+    line-height: 140%
+    font-weight: 500
+    color: $gray5
+  small p
+    font-weight: 400
+    font-size: 1.3rem
+    color: $gray4
+
+article.contact
+  margin-bottom: 2rem
+
+article.project
+  max-width: 20rem
+  margin-bottom: 2rem
+  &:hover
+    header h1 a
+      background: $gray1
+  header h1
+    margin-bottom: 0
+    a
+      padding: .1rem .4rem
+      margin-left: -.4rem
+      border-radius: $border-radius
+      font-size: 1.1rem
+      font-weight: $font-weight + 200
+      &:hover
+        background: $link-bg
+  p
+    margin: 0
+    color: $gray3
