@@ -32,7 +32,7 @@ navigation:
   - {file: "index.html"}
   - {file: "projects.html"}
   - {file: "blog.html"}
-  - {title: Code, url: "https://www.github.io"}
+  - {title: Code, url: "https://www.github.com/rphmeier"}
   - {file: "about.html"}
 
 #  - {title: Mail, icon: envelope, url: "mailto:niklasbuschmann@users.noreply.github.com"}
