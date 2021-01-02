@@ -12,12 +12,15 @@ sidebar: false               # show a sidebar instead of the usual header
 show_excerpts: true         # show article excerpts on the home page
 show_related: false           # show the previous and next links after every post
 show_description: true       # show the site description in the sidebar
-show_title: true            # always keep the site title visible
+show_title: false            # always keep the site title visible
 
 # Styling
 
 dark_header: false           # always keep the header dark
 minimal: false             # use simpler style
+
+# MathJax, please
+mathjax: true
 
 # Menu
 
@@ -26,8 +29,11 @@ external:                 # see http://fontawesome.com/icons
   - {title: Twitter, icon: twitter, url: "https://twitter.com/rphmeier"}
 
 navigation:
-  - {file: "index.html", icon: home}
-  - {file: "about.html", icon: address-card}
+  - {file: "index.html"}
+  - {file: "projects.html"}
+  - {file: "blog.html"}
+  - {title: Code, url: "https://www.github.io"}
+  - {file: "about.html"}
 
 #  - {title: Mail, icon: envelope, url: "mailto:niklasbuschmann@users.noreply.github.com"}
 #  - {title: Github, icon: github, url: "https://github.com/niklasbuschmann/contrast"}

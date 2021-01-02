@@ -4,33 +4,54 @@
 @import index, font, basic, layout
 
 .content > header, .content > article, body > footer
-  padding: 1.5em
+  position: relative
 
-@media (min-width: 32em)
-  .content > header, .content > article, body > footer
-    padding: 1.75em calc(38% - 12em)
 
-{% if site.dark_header %}
+@media (max-width: 45rem)
+  .content
+    width: 100%
+    max-width: calc( 100% - 4rem )
+    margin: auto
+    & > header nav
+      margin: 1rem 0 0 -1em
+      a
+        margin: 0 1em
+        font-size: 3.2vw
 
-.content > header
-  background: lighten($dark, 1%)
-  color: #fff
-  border-bottom: 1px solid rgba($light, 0.05)
-
-{% else %}
-
-.content > header
-  background: rgba($light, 0.02)
-  box-shadow: 0 0 .6em rgba($dark, 0.05)
-  border-bottom: 1px solid reduce(16)
-
-{% endif %}
+@media (min-width: 45rem)
+  .content
+    width: 48rem
+    max-width: calc(100% - 14rem)
+    margin: 0 0 0 12rem
+    & > header
+      position: absolute
+      display: inline-flex
+      flex-direction: column
+      align-content: flex-start
+      align-items: flex-start
+      left: 0
+      top: 1.3rem
+      width: 12rem
+      nav 
+        padding: 0 0 0 2rem
+        a
+          display: block
+          margin: .2rem 0
+          &.selected
+            color: $gray5
+@media (min-width: 72rem)
+  .content
+    margin: auto
+    & > header
+      left: calc((100% - 72rem)/2)
 
 {% unless site.sidebar %}
 
 body > footer
   background: rgba($light, 0.02)
-  box-shadow: 0 0 .6em rgba($dark, 0.04) inset
+  padding: .2rem 0
   border-top: 1px solid reduce(16)
+  & p
+    margin: 0
 
 {% endunless %}

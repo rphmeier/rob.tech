@@ -1,0 +1,14 @@
+<article class="bio">
+  {% if include.post.categories.size > 0 and site.minimal != true and include.preview != true %}
+    <div class="categories">{{ include.post.categories | join: ", "  | upcase }}</div>
+  {% endif %}
+
+  <h1>{{ include.post.title }}</h1>
+</article>
+<article>
+  {%- assign date_format = site.date_format | default: "%B %d, %Y" -%}
+  <span class="article-subtitle">
+    <time datetime="{{ include.post.date | date_to_xmlschema }}">{{ include.post.date | date: date_format }}</time>
+  </span>
+</article>
+
