@@ -8,16 +8,15 @@ $link-shape: #070e77 !default
 $link-shadow: #7713d1 !default
 
 $dark: #0B0B15 !default
-$gray1: #12121b !default
+$gray1: #181825  !default
 $gray2: #2b2b2b !default
 $mitte: #535b64 !default
-$gray3: #828282 !default
-$gray4: #BDBDBD !default
+$gray3: #929394 !default
+$gray4: #B1b2b3 !default
 $gray5: #d3d3d3 !default
 $gray6: #F2F2F2 !default
-$light: #f2f1f1 !default
 
 $border-radius: 4px !default
 
 @function reduce ($percent)
-  @return rgba(mix($dark, $light), $percent / 100)
+  @return rgba(mix($dark, $gray6), $percent / 100)
