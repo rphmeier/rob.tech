@@ -9,19 +9,21 @@ date_format: "%B %d, %Y"
 # Layout
 
 sidebar: false               # show a sidebar instead of the usual header
-show_excerpts: true         # show article excerpts on the home page
-show_related: false           # show the previous and next links after every post
+show_excerpts: true          # show article excerpts on the home page
+show_related: false          # show the previous and next links after every post
 show_description: true       # show the site description in the sidebar
 show_title: false            # always keep the site title visible
 
 # Styling
 
 dark_header: false           # always keep the header dark
-minimal: false             # use simpler style
+minimal: false               # use simpler style
+
+cardShadowLines: true        # card shadows dimmed with texture
 
 # Menu
 
-external:                 # see http://fontawesome.com/icons
+external:                    # see http://fontawesome.com/icons
   - {title: Github, icon: github, url: "https://github.com/rphmeier"}
   - {title: Twitter, icon: twitter, url: "https://twitter.com/rphmeier"}
 
