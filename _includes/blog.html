@@ -1,7 +1,13 @@
 {%- assign posts = paginator.posts | default: site.posts -%}
 {%- assign num_posts = paginator.total_posts | default: 0 -%}
 {% for post in posts %}
-  <article class="blogpost">
+  <article class="post-preview">
+    <div class="shadow-box">
+      <div class="shadow-color"></div>
+      <div class="shadow-overlay"></div>
+      <div class="shadow-mask"></div>
+    </div>
+
     {% include meta.html post=post preview=true %}
     {{ post.excerpt }}
     <div class="more"><a href="{{ post.url | relative_url }}"></a></div>
