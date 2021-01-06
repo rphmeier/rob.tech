@@ -24,13 +24,17 @@
     max-width: calc(100% - 14rem)
     margin: 0 0 0 12rem
     & > header
+      {% if site.fixed_menu %}
+      position: fixed
+      {% else %}
       position: absolute
+      {% endif %}
       display: inline-flex
       flex-direction: column
       align-content: flex-start
       align-items: flex-start
       left: 0
-      top: 1.8rem
+      top: 1.4rem
       width: 12rem
       nav 
         padding: 0 0 0 2rem
@@ -39,6 +43,10 @@
           line-height: 1.8
           &.selected
             color: $gray5
+          &:first-child
+            font-size: 0.9rem
+            line-height: 2.5rem
+            letter-spacing: 0.02em
 
 @media (min-width: 72rem)
   .content
@@ -51,7 +59,7 @@
 
 body > footer
   background: rgba($gray6, 0.02)
-  padding: 0.5rem 0.5rem 0.5rem calc(50% - 32rem)
+  padding: 0.5rem 0.5rem 0.5rem calc(50% - 37rem)
   justify-content: flex-start
   border-top: 1px solid reduce(16)
   .icons
