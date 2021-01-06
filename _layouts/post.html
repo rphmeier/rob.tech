@@ -3,8 +3,8 @@ layout: default
 ---
 
 {% include meta-post.html post=page %}
-<article>
-  
+<article class="post-body">
+
   {{ content }}
   {% if page.comments != false and site.comments.isso or site.comments.disqus %}
     <hr>

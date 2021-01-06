@@ -11,6 +11,7 @@ body
   font-weight: $font-weight
   line-height: $line-height
   margin: 0
+  padding-top: 2rem
   -webkit-text-size-adjust: 100%
   -webkit-font-smoothing: antialiased
   -moz-osx-font-smoothing: grayscale
@@ -26,7 +27,7 @@ small
   font-weight: normal
 
 a
-  color: $link-color
+  color: $link-text
   text-decoration: inherit
   &:hover
     text-decoration: underline
@@ -34,18 +35,18 @@ a
 header a
   color: $mitte
   font-weight: $font-weight + 100
-  font-size: 1.4rem
+  font-size: 1.2rem
   &:hover
-    color: $light
+    color: $gray6
     text-decoration: none
 
 .contact .icons a
   color: $gray3
-  margin: 0 .5rem
+  margin: 0 .75rem
   &:first-child
     margin-left: 0
   &:hover svg
-    color: $light
+    color: $gray6
 
 article header a, footer a
   color: inherit
@@ -53,10 +54,10 @@ article header a, footer a
 .article-subtitle
   display: block
   margin-bottom: 2em
+  color: $gray3
 
 time
   color: $gray3
-  font-size: 0.85em
   margin-bottom: 0.5em
   display: inline-block
 

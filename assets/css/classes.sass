@@ -17,7 +17,7 @@
 {% unless site.minimal %}
 
 .categories
-  color: $link-color
+  color: $link-text
   margin-bottom: .15em
 
 {% endunless %}
@@ -39,8 +39,8 @@
 {% if site.sidebar or site.external %}
 
 .icons svg
-  height: 1em
-  width: 1em
+  height: 1.7em
+  width: 1.7em
   fill: currentColor
   transition: .2s color
   vertical-align: middle
@@ -57,10 +57,52 @@
   height: calc(100% + 2rem)
   margin-left: -1rem
   margin-top: -1rem
+  box-sizing: border-box
+  border: 1px solid $gray1
   border-radius: 6px
-  transition: 0.3s
-  &:hover
-    box-shadow: 0 0 1.5rem rgba(black, .4)
+
+.shadow-box
+  position: absolute
+  z-index: -1
+  width: 100%
+  height: 100%
+  .shadow-color
+    box-sizing: border-box
+    width: calc(100% + 4rem)
+    height: calc(100% + 4rem)
+    margin: -2rem
+    background: $link-shape
+    border: .5rem solid $link-shadow
+    border-radius: 6rem
+    filter: blur(0.7rem)
+    opacity: 0 
+    transform: scale(0)
+    transition: opacity .2s, transform .2s
+  .shadow-overlay
+    position: absolute
+    width: calc(100% + 12rem)
+    height: calc(100% + 12rem)
+    top: -6rem
+    left: -6rem
+    {% if site.cardShadowLines %}
+    background-image: url(../img/shadow-mask.png)
+    {% endif %}
+    background-size: 0.2rem
+  .shadow-mask
+    position: absolute
+    top: 0
+    width: calc(100% + 2rem)
+    height: calc(100% + 2rem)
+    margin-left: -1rem
+    margin-top: -1rem
+    border-radius: 6px
+    background: opacify($dark, 0.8)
+
+article.post-preview:hover 
+  .shadow-box 
+    .shadow-color
+      opacity: 1
+      transform: scale(1)
 
 {% endif %}
 
@@ -105,15 +147,20 @@
 
 {% endunless %}
 
-article.blogpost
+article.post-preview
   max-width: 36rem
-  margin-bottom: 3rem
+  margin-bottom: 5rem
   header, p
     pointer-events: none  
+  p
+    color: $gray3
+
+article.post-body
+  margin-bottom: 50vh
 
 article.bio
   min-height: 8rem
-  margin-bottom: 4rem !important
+  margin-bottom: 2rem !important
   & > p
     max-width: 36rem
   p, h1
@@ -132,19 +179,20 @@ article.contact
 article.project
   max-width: 20rem
   margin-bottom: 2rem
-  &:hover
-    header h1 a
-      background: $gray1
+      
   header h1
     margin-bottom: 0
     a
       padding: .1rem .4rem
       margin-left: -.4rem
+      border: 1px solid transparent
       border-radius: $border-radius
       font-size: 1.1rem
       font-weight: $font-weight + 200
+      letter-spacing: 0.01em
+      border: 1px solid $gray2
       &:hover
-        background: $link-bg
+        background: $link-text
   p
     margin: 0
     color: $gray3
