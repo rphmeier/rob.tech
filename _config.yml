@@ -33,10 +33,7 @@ external:                    # see http://fontawesome.com/icons
 
 navigation:
   - {file: "index.html"}
-  - {file: "projects.html"}
   - {file: "blog.html"}
-  - {title: Code, url: "https://www.github.com/rphmeier"}
-  - {file: "about.html"}
 
 #  - {title: Mail, icon: envelope, url: "mailto:niklasbuschmann@users.noreply.github.com"}
 #  - {title: Github, icon: github, url: "https://github.com/niklasbuschmann/contrast"}
