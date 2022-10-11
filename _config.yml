@@ -5,6 +5,7 @@ permalink: /:title/
 lang: "en"
 excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
+url: "https://rob.tech"
 
 # Layout
 
@@ -28,8 +29,9 @@ mathjax: true
 # Menu
 
 external:                    # see http://fontawesome.com/icons
-  - {title: Github, icon: github, url: "https://github.com/rphmeier"}
-  - {title: Twitter, icon: twitter, url: "https://twitter.com/rphmeier"}
+  - {title: Github, icon: github-square, url: "https://github.com/rphmeier"}
+  - {title: Twitter, icon: twitter-square, url: "https://twitter.com/rphmeier"}
+  - {title: RSS, icon: rss-square, url: "/feed.xml"}
 
 navigation:
   - {file: "index.html"}
