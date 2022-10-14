@@ -1,11 +1,8 @@
 ---
 title: "Blockchains, Rules, and Reciprocity"
 layout: post
+excerpt: "An examination of blockchains in the context of human society, rule-based systems, social paradoxes, and law"
 ---
-
-**Blockchains, Rules, and Reciprocity**
-
-
 
 The base level of human society functions due to the principle of reciprocity: acting benevolently towards others without any direct expectation of a reward with the understanding that the favor will be returned by someone, someday. Alexis de Tocqueville, within his 1835 study of American Democracy, referred to this as “self-interest, properly understood”. When reciprocity is applied broadly, everyone benefits.
 
