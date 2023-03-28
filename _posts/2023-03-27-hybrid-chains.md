@@ -4,7 +4,7 @@ layout: post
 excerpt: "An exploration of Hybrid Chains, a new approach to blockchain construction that bring the advantages of both app-chains and smart-contract chains"
 ---
 
-![](../assets/images/hybrid-chains.png)
+![](/assets/images/hybrid-chains.png)
 
 Application-specific blockchains, or app-chains are highly uncontroversial today. The multi-chain ecosystem will evolve such that each chain specializes in one or two specific tasks, which are either user-facing or intermediate products, and applications will be composed of interactions between these chains. It’s the natural conclusion of the multi-chain vision. Right?
 

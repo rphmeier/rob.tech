@@ -9,7 +9,7 @@ layout: post
 
 My address has the verified identity "ROB" on the Polkadot mainnet.
 
-![](../assets/images/rob-council.png)               
+![](/assets/images/rob-council.png)               
 
 I've had my candidacy up for some time, but haven't focused strongly on securing a seat. This post represents my commitment to joining the Polkadot council, and my request for your support.
 
