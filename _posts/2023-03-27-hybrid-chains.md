@@ -2,6 +2,8 @@
 title: "Hybrid Chains: Every Chain Should Have Smart Contracts"
 layout: post
 excerpt: "An exploration of Hybrid Chains, a new approach to blockchain construction that bring the advantages of both app-chains and smart-contract chains"
+twitter-description: "Hybrid Chains bring the advantages of app-chains and smart-contract chains"
+twitter-image: "https://rob.tech/assets/images/hybrid-chains.png"
 ---
 
 ![](/assets/images/hybrid-chains.png)
