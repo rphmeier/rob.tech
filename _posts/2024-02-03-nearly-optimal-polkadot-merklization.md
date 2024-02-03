@@ -25,9 +25,9 @@ When it comes to the Polkadot-SDK, I see this design being far more useful to Pa
 
 In 2016, the first significant project I worked on in the blockchain space was optimizing the Parity-Ethereum node's implementation of Ethereum's Merkle-Patricia Trie. At that time, blockchain node technology was a lot less sophisticated. We were in a friendly rivalry with the geth team, and one way we wanted to get a leg up on geth's performance was by implementing batch writes, where we'd only compute all of the changes in the Merkle-Patricia trie once at the end of the block (actually, the end of each transaction - at that time, transaction receipts all carried an intermediate state root). The status quo was to rather apply updates to trie nodes individually as state changes occurred during transaction execution. This may be hard to believe for node developers of today, but hey, it was 2016, and it worked - and it gave our Ethereum nodes a significant boost in performance.
 
-We've come a long way since 2016, but many of the inefficiencies of the 16-radix Merkle-Patricia trie used in Ethereum and the Polkadot-SDK still persist. They have minor differences in node encoding and formats, but function much the same. The radix of 16 was chosen because it reduced one of the biggest problems with traversing Merkle Tries: random accesses. Child nodes are referenced by their hash, and these hashes are randomly distributed. If your traversal algorithm is naive and you load each child node as you learn its hash, you end up breaking one of the first laws of computer program optimization, which is to maintain data locality. What's even worse is breaking that law in disk access patterns. State Merkle Tries in Ethereum, Polkadot-SDK, and countless other protocols still work this way today.
+We've come a long way since 2016, but many of the inefficiencies of the 16-radix Merkle-Patricia trie used in Ethereum and the Polkadot-SDK still persist. They have minor differences in node encoding and formats, but function much the same. The radix of 16 was chosen because it reduced one of the biggest problems with traversing Merkle Tries: random accesses. Child nodes are referenced by their hash, and these hashes are randomly distributed. If your traversal algorithm is naive and you load each child node as you learn its hash, you end up breaking one of the first laws of computer program optimization, which is to maintain data locality. What's even worse is breaking that law in disk access patterns. 16-radix Merkle-Patricia Tries alleviate this issue but definitely do not solve it. State Merkle Tries in Ethereum, Polkadot-SDK, and countless other protocols still work this way today, all with optimizations.
 
-One of the other issues with the 16-radix Merkle-Patricia trie is that it's very space inefficient. Beyond the first few layers, the state trie gets pretty sparse, and most of the 16 slots for children at each branch node are not occupied. All else equal, the 16-trie is more efficient than its binary counterpart in the number of disk accesses that need to be made. However, in a world of light and stateless blockchain nodes, where Merkle proofs need to be submitted over the network, sending all these mostly-empty nodes wastes space.
+One of the other issues with the 16-radix Merkle-Patricia trie is that it's very space inefficient. All else equal, the 16-trie is more efficient than its binary counterpart in the number of disk accesses that need to be made. Proving the access of a key involves sending the hashes of the up to 15 other children at every visited branch. Binary trie proofs only involve one sibling, so all the extras are additional overhead. In a world of light and stateless blockchain nodes where Merkle proofs need to be submitted over the network, sending all these extra sibling hashes is highly wasteful. 
 
 There have been advancements, such as the [Jellyfish Merkle Trie](https://developers.diem.com/papers/jellyfish-merkle-tree/2021-01-14.pdf?ref=127.0.0.1) pioneered at Diem. To summarize briefly - Jellyfish is pretty clever, and allows the same trie to be represented either in a binary format (over the network), or in a 16-radix format (on disk). It has other optimizations which aim to replace common sequence patterns of nodes with very efficient representations to minimize the required steps in traversal, update, and proving. They also remark on an approach to storing trie nodes on disk which avoids as much write amplification (read: overhead) in a RocksDB-based implementation. Jellyfish is definitely an improvement, but it also makes a key trade-off: the assumption that the keys used in the state trie have a fixed length.
 
@@ -63,14 +63,99 @@ TODO: diagram (page)
 
 When keys are fixed-length, value-carrying nodes can never have children - they are always leaves. Therefore, to query a value stored under a key, you must load all the nodes leading up to that key. Due to the page structure, this also implies loading that node's siblings, as well as all the sibling nodes along the path. Having the path and all the sibling nodes to a key, or set of keys, is all the information that is needed to update a binary Merkle trie. 
 
-One problem that arises in binary merkle tries due to long shared prefixes is long traversals, assuming that your only two kinds of nodes are leaf nodes and branch nodes. Many Polkadot-SDK keys start with 256-bit shared prefixes - with these usage patterns, you'd traverse through 256 layers of the binary trie before even getting to a differentiated part. Luckily, Ethereum and Polkadot-SDK have already worked around this issue with an approach known as **extension nodes**. These nodes encode a long shared run of bits which their children are implied to contain. These work slightly differently in Ethereum and Polkadot-SDK, but achieve the same effect. Systems like Jellyfish have gotten rid of them entirely, because if your keys are uniformly distributed the odds of having long shared prefixes in a crowded trie are pretty small. But in the Polkadot-SDK model they still make sense. 
+One problem that arises in binary merkle tries due to long shared prefixes is long traversals, assuming that your only two kinds of nodes are leaf nodes and branch nodes. Many Polkadot-SDK keys start with 256-bit shared prefixes - with these usage patterns, you'd traverse through 256 layers of the binary trie before even getting to a differentiated part. Luckily, Ethereum and Polkadot-SDK have already worked around this issue with an approach known as **extension nodes**. These nodes encode a long shared run of bits which all descendants of the node contain as part of their path. These work slightly differently in Ethereum and Polkadot-SDK, but achieve the same effect. Systems like Jellyfish have gotten rid of them entirely, because if your keys are uniformly distributed the odds of having long shared prefixes in a crowded trie are pretty small. But in the Polkadot-SDK model they still make sense. 
 
 These properties to uphold, assumptions to relax, and usage patterns to support let us finally arrive to a sketch of the solution. First, we will turn our variable-length keys into fixed-length keys with a **uniform and logically large size** with an **efficient padding mechanism**. Second, we will **introduce extension nodes without substantially increasing disk accesses**.
 
 ---
 
-- sketch: keys are actually all logically `key ++ first_padding ++ len(key) ++ padding`. first_padding brings the bit length up to a multiple of N bits. len(key) is an N-bit representation of the length of the original key. `padding` brings us up to a fixed length of 2^N. We can efficiently have N=32. leaf nodes are `unpadded_key ++ value`. Segue into extension nodes.
+### Padding Bounded-Length Keys to Fixed-Length Lookup Paths 
+
+Turning variable-length keys into fixed-length lookup paths in the general case is impossible. However, if we can assume that all keys we use are less than some fixed length, then this problem is tractable. 
+
+Storage keys in Polkadot-SDK are often longer than 256 bits. They are definitely less than 2^32 bits long, and in all likelihood always less than 2^12 bits long. Let's assume some generic upper bound 2^N and further assume that all keys used have length at most 2^N - N bits. 
+
+Our goal is to create an efficient padding scheme that pads bit-strings that have length at most 2^N - N into unique bit-strings that are exactly length 2^N. We want to do this while preserving the initial key and only appending.
+
+We can do this with the following algorithm:
+  1. Take the original key and append `0`s to it until its length is divisible by N
+  2. Append the length of the original key represented as an N-bit number
+  3. Append `0`s to it until its length equals 2^N
+
+TODO: diagram
+
+This mapping gives us 2 desirable properties:
+  1. No ambiguity. There are no 2 inputs which give the same output.
+  2. The input key is kept as a prefix of the generated one. This preserves the shared prefixes in the original input keys that allow for iteration under shared prefixes.
+
+However, it does not preserve a strict lexicographic ordering. It is almost perfect, but the lexicographic order when one key is a prefix of another is not preserved. If there are two keys, A and B, where A is a prefix of B, it is possible that pad(B) < pad(A). For example, with N=4 `111` would be padded to `1110_00110_0000_0000` and this will be sorted after the padded version of `11100000`, which is `1110_0000_1000_0000`.
+
+If we were to put the length at the very end of the padding instead of directly after the initial key, we'd have preserved a full lexicographic ordering. But it would also lead to pairs of keys like `111` and `1110` being converted to lookup paths with extremely long shared prefixes - implying longer traversals. In practice this might be acceptable, as Polkadot-SDK doesn't produce these types of pairs storage keys. But it'd have very bad worst-case scenario, even with extension nodes.
+
+While we are then dealing with a trie which in theory has 2^N layers, we will in practice never have keys or traversals anywhere near that long and will encounter leaf nodes much earlier in our traversal.
+
+The structure of a leaf node in the original proposal and this modified version is exactly the same, with one semantic difference. Our data structure maps bounded-length keys to fixed-length lookup paths. Since the key length is not fixed, the encoding of our structure has a variable length. The last 32 bytes are the hash of the stored value, and the preceding bytes are the key itself.
+
+```rust
+struct Leaf { key: [u8], value_hash: [u8; 32] }
+```
+
+There would be no point in actually constructing the extremely long padded key in memory or hashing it, as our padding mechanism introduces no new entropy and simply maps keys from smaller spaces onto a larger one. They are only lookup paths, not logical keys.
+
+Note that while it is theoretically possible to invert the mapping and go from one of our padded strings to its shorter representation, this is computationally intensive. So there is one other downside to this approach: if you give someone a path to a leaf node, but don't provide the leaf node or original key, it's hard to know which key this is proves membership of in the state trie. I don't believe this is a major issue, as it's more typical to prove to someone which value is stored under a key rather than prove that a value is stored for this key. If that's needed, you can just provide the original key along with the nodes along the longer padded lookup path.
 
 ---
 
-- sketch: steal an extra bit for domain separation, put extension node children in the page implied by the end of the extension node. smarter pre-fetching based on omitted pages for common prefixes. extension nodes contain a partial path of up to 248 bits, prefixed by an 8-bit length. extension nodes are hash(child_a, child_b, partial_key). the partial key is stored either directly under the extension node (on the left, in the same page), in the first free slot under a leaf (in the same page), or in the following page. the last scenario can only occur when the extension is at the bottom of the page and the page is extremely full. extensions at the bottom of the page and therefore the extra page-load are predictable from cache. we can use the last 32 bytes of the page as a bitmap to tell us where leaves/extensions are - 128 bits each. or we could use it as another slot for storing the partial key of an extension
+### Introducing Extension Nodes
+
+To handle the case of long shared prefixes in storage keys, we will introduce extension nodes which encode long partial lookup paths.
+
+The first challenge to solve in introducing extension nodes is to add a third kind of node, beyond branches and leaves. Most trie implementations encode the type of node with a discriminant preceding the encoded value of the node, by using code that looks like this:
+
+```rust
+enum Node {
+    #[index = "0"]
+    Branch(left_child, right_child),
+    #[index = "1"]
+    Leaf(key, value),
+    //...
+}
+```
+
+Preston's proposal implements this differently: the type of node is encoded by its hash rather than the value. One bit is taken from the beginning of the hash - if it's a `0`, the node referenced by the hash is a branch. If it's a `1`, the node referenced by the hash is a leaf. This is referred to as a "domain separation".
+
+Since the hash function we'd use in the trie is cryptographic, taking 1 bit from a 256-bit hash for domain separation doesn't meaningfully impact security. To domain-separate out 3 (or 4) kinds of nodes, we'd need to take 2 bits from the hash function output. This also does not impact security meaningfully.
+
+So to add a 3rd kind of node, we extend the domain separation to 2 bits with the following schema:
+  1. If the hash starts with `00` the node is a branch.
+  2. If the hash starts with `01` the node is a leaf.
+  3. If the hash starts with `10` the node is an extension.
+  4. The hash cannot legally start with `11`.
+
+But what is an extension node? Its logical structure will be this:
+
+```rust
+struct Extension {
+    partial_path: [u8; 64]
+    child_1: [u8; 32],
+    child_2: [u8; 32],
+}
+```
+
+The partial path encodes some part of the lookup path which is shared by all of its descendant nodes. It is laid out like this, bitwise:
+```
+000000101|01101000000...
+```
+The first 9 bits encode a length from 0 to 511. The next 503 bits encode the partial key, right-padded with 0s. Partial key lengths of 0, 1, or any value above 503 are disallowed for obvious reasons: 0 is impossible, 1 should just be a branch, and we don't have space for anything more than 503 bits.
+
+Extensions are logically branches and have two children. It would make no sense for an extension to be followed by a single leaf. Such a structure would be more efficiently represented as a single leaf node. Therefore extensions must implicitly be branches. As a side note: this is actually a major difference between the Merkle Patricia Trie in Ethereum versus the one used in Polkadot-SDK: in Ethereum extensions may in theory be followed by leaves. In Polkadot-SDK it is illegal.
+
+The next problem to solve is how to store the data of an extension node in our pages. The child hashes of normal branches are stored directly "below" the branch node itself - either in the next layer of the current page or in the first layer of the next page, if the branch node is at the bottom of its page. We can adopt a similar strategy: the child hashes of the extension node will be stored in the page, and the position of the page, implied by the path to the child nodes. As a result, we may have empty pages between the extension node and its children. Importantly, the storage of descendents of the extension node will never be affected by modifications to or the removal of the extension node.
+
+We still need to store that 64-byte partial path somewhere. It turns out we can store it directly under the extension node. Because extensions with 1 bit are illegal, and the children of the extension are stored in the page implied by their partial key, the slots for storing the nodes directly beneath the extension will be empty. We can use these two 32-byte slots to store the 64-byte partial key. When the extension node itself is at the bottom layer of the page, the partial key will be stored on the next page. There are possible fancier schemes to avoid this, such as finding empty locations within the current page to squirrel away the partial key - spaces under leaves and empty-subtrie markers can be overwritten. But that adds loads of complexity for little real gain: when the difference in the amount of pages we need to traverse is 1, what matters is whether we can pre-fetch the required pages from the SSD more so than how many pages we load. Modern SSDs are good at parallel reading.
+
+TODO: diagram (storing extension nodes, partial key, and children)
+
+The last issue is related: the fact that extensions can introduce gaps in the necessary pages to load could be a huge problem. An extension node located in a page of depth 2, which encodes a partial path of length 60, would land the child nodes of the extension squarely in page 12. We can no longer just pre-fetch the first N pages as computed from the key's lookup path and expect to find a terminal there. This is a general issue which would be a showstopper if not for the practical workload that the Polkadot-SDK imposes on the trie: there are relatively few shared prefixes, so we can just cache the "page paths" for all of them.
+
+A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 different storage maps or values, for a total of ~550 common shared prefixes. When there are only a few hundred or even a few thousand shared storage prefixes, it's pretty trivial to keep an in-memory cache which tells us which pages you need to load to traverse to the end of some common prefix. Caching becomes intractable somewhere in the millions of shared prefixes. Then you can also run a simple pre-processsing on every queried key to see which shared prefixes match, if any. For the Polkadot-SDK workload, this will keep our SSD page-loads perfectly predictable just from the key. For a smart contract workload it would be better to incorporate a "child trie" approach, where each smart contract has its own state trie.
