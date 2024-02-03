@@ -69,7 +69,7 @@ These properties to uphold, assumptions to relax, and usage patterns to support 
 
 ---
 
-- sketch: keys are actually all logically `key ++ first_padding ++ len(key) ++ padding`. first_padding brings the bit length up to a multiple of N bits. len(key) is an N-bit representation of the length of the original key. `padding` brings us up to a fixed length. leaf nodes are `unpadded_key ++ value`. Segue into extension nodes.
+- sketch: keys are actually all logically `key ++ first_padding ++ len(key) ++ padding`. first_padding brings the bit length up to a multiple of N bits. len(key) is an N-bit representation of the length of the original key. `padding` brings us up to a fixed length of 2^N. We can efficiently have N=32. leaf nodes are `unpadded_key ++ value`. Segue into extension nodes.
 
 ---
 
