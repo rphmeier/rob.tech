@@ -13,7 +13,7 @@ The optimizations presented in the original post sparked a two-day conversation 
 
 Preston's proposed system, in a nutshell, is a new binary Merkle Trie format and database schema that is extremely low-overhead and amenable to SSDs with most (if not all) disk accesses being predictable with no other information beyond the key being queried. We'll revisit more specifics later, though I highly recommend reading the original blog post for a high-fidelity explanation. 
 
----
+------
 
 But first, let's cover _why_ optimization of the Merkle Trie is so important. The open secret about scaling serial blockchain execution is that most of the time isn't actually spent on executing transactions: it's on reading and writing state data to and from disk, such as accounts, balances, and smart contract state. Merkle Tries in blockchains are not strictly necessary, but they provide a means of easily proving some of the state of the ledger to a light client. They are a key part of permissionless blockchain systems which seek to include light clients, not just full nodes, as full participants.
 
@@ -21,7 +21,7 @@ Traversing a Merkle Trie to load some particular piece of state is a log(n) oper
 
 When it comes to the Polkadot-SDK, I see this design being far more useful to Parachains than the Polkadot Relay Chain itself. The Relay Chain has relatively little state, having offloaded most of its work onto System Parachains. For parachains, the benefits will come for two reasons. Reason one is that it's more data-efficient, utilizing less of what we refer to in Polkadot-land as the Proof-of-Validity. Reason two is that (at the time of this writing), work on [Elastic Scaling](https://github.com/paritytech/polkadot-sdk/issues/1829) is underway, and it will in theory bound the throughput of a parachain at the rate a single node is capable of processing transactions. I foresee a future for some parachains where the Merkle Trie will be a bottleneck.
 
----
+------
 
 In 2016, the first significant project I worked on in the blockchain space was optimizing the Parity-Ethereum node's implementation of Ethereum's Merkle-Patricia Trie. At that time, blockchain node technology was a lot less sophisticated. We were in a friendly rivalry with the geth team, and one way we wanted to get a leg up on geth's performance was by implementing batch writes, where we'd only compute all of the changes in the Merkle-Patricia trie once at the end of the block (actually, the end of each transaction - at that time, transaction receipts all carried an intermediate state root). The status quo was to rather apply updates to trie nodes individually as state changes occurred during transaction execution. This may be hard to believe for node developers of today, but hey, it was 2016, and it worked - and it gave our Ethereum nodes a significant boost in performance.
 
@@ -33,7 +33,7 @@ There have been advancements, such as the [Jellyfish Merkle Trie](https://develo
 
 We'll address the subject of fixed-length keys in more detail later, but it's the root of the differences between Preston's assumptions and the ones we'll be working with in this post. This difference in some sense is the real subject of this article. The Polkadot-SDK has taken an alternative path down the "tech tree" stemming from the Merkle-Patricia Trie of Ethereum. While Ethereum only ever uses fixed-length keys in its state trie, the underlying data structure actually supports arbitrary-length keys by virtue of the branch node carrying an optional value. Polkadot-SDK takes full advantage of this property and may actually be the only system to do so.
 
----
+------
 
 It's now time to visit the optimizations and differing assumptions, and modifications that might be made to apply these same optimizations (in spirit) to the Polkadot-SDK.
 
@@ -53,13 +53,15 @@ Keys not having a fixed length and having long shared prefixes is a huge differe
 
 TODO: diagram - uniform distribution vs shared prefixes
 
----
+-----
 
 Without going into the details of the original approach yet (and I'd encourage having that article open as a reference), I'll lay out two of the properties that are crucial to making it fast. The first is that nodes have _extremely compact_ and _consistent_ representations on disk. The second is that all of the information needed to update the trie can be loaded by simply fetching the data needed to query the changed keys.
 
 Each node has a representation which occupies only 32 bytes: it's a hash, with the first bit taken as a "domain separator" to indicate whether it's a branch or a leaf. Nodes are stored in fixed-size groups that cover predictable parts of the key space as a means to optimize SSDs. Nodes are stored in pages of 126 nodes, with 32 bytes for each node and 32 bytes for the page's unique identifier, for a total size of 4064 bytes. This is just 32 bytes shy of 4096 bytes - many, though not all, SSDs work on 4096-byte pages, so this maps very well onto the physical layout of SSDs. Since the pages needed are predictable from the key itself, all of these pages can be pre-fetched from an SSD in parallel and then traversed. No hopping around.
 
-TODO: diagram (page)
+![](/assets/images/merklization_diagrams/page_1.svg)
+
+This diagram shows a scaled-down version of the page, but the property of having 64 bytes over holds for all N.
 
 When keys are fixed-length, value-carrying nodes can never have children - they are always leaves. Therefore, to query a value stored under a key, you must load all the nodes leading up to that key. Due to the page structure, this also implies loading that node's siblings, as well as all the sibling nodes along the path. Having the path and all the sibling nodes to a key, or set of keys, is all the information that is needed to update a binary Merkle trie. 
 
@@ -67,7 +69,7 @@ One problem that arises in binary merkle tries due to long shared prefixes is lo
 
 These properties to uphold, assumptions to relax, and usage patterns to support let us finally arrive to a sketch of the solution. First, we will turn our variable-length keys into fixed-length keys with a **uniform and logically large size** with an **efficient padding mechanism**. Second, we will **introduce extension nodes without substantially increasing disk accesses**.
 
----
+------
 
 ### Padding Bounded-Length Keys to Fixed-Length Lookup Paths 
 
@@ -104,7 +106,7 @@ There would be no point in actually constructing the extremely long padded key i
 
 Note that while it is theoretically possible to invert the mapping and go from one of our padded strings to its shorter representation, this is computationally intensive. So there is one other downside to this approach: if you give someone a path to a leaf node, but don't provide the leaf node or original key, it's hard to know which key this is proves membership of in the state trie. I don't believe this is a major issue, as it's more typical to prove to someone which value is stored under a key rather than prove that a value is stored for this key. If that's needed, you can just provide the original key along with the nodes along the longer padded lookup path.
 
----
+------
 
 ### Introducing Extension Nodes
 
@@ -136,7 +138,7 @@ But what is an extension node? Its logical structure will be this:
 
 ```rust
 struct Extension {
-    partial_path: [u8; 64]
+    partial_path: [u8; 64],
     child_1: [u8; 32],
     child_2: [u8; 32],
 }
