@@ -17,7 +17,7 @@
       {% endif %}
     >
       {%- if item.icon and site.sidebar or include.icons == true -%}
-        <svg aria-hidden="true" {% unless include.icons %}class="hidden"{% endunless %}><use xlink:href="{{ "/assets/fontawesome/icons.svg" | relative_url }}#{{ item.icon }}"></use></svg>
+        <svg width="2.5em" height="2.5em" aria-hidden="true" {% unless include.icons %}class="hidden"{% endunless %}><use xlink:href="{{ "/assets/fontawesome/icons.svg" | relative_url }}#{{ item.icon }}"></use></svg>
       {%- endif -%}
       {%- if title and site.sidebar or include.icons != true -%}
         <span aria-hidden="true" {% if include.icons %}class="hidden"{% endif %}>{{ title }}</span>
