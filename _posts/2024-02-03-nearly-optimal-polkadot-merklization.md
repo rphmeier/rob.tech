@@ -2,7 +2,6 @@
 title: "Nearly Optimal State Merklization (in Polkadot-SDK)"
 layout: post
 excerpt: "Building upon ideas for a novel Merkle Trie database"
-twitter-image: TODO
 ---
 
 Recently, my friend and coworker [Sergei (Pepyakin)](https://pep.wtf) sent me an article from Preston Evans on the subject of a more optimal Merkle Trie format designed to be efficient on SSDs. The original article is [here](https://www.prestonevans.me/nearly-optimal-state-merklization/) and I highly recommend it as background reading to this post.
@@ -49,7 +48,9 @@ Polkadot-SDK has made different decisions - in some cases, slightly different, i
 
 Keys not having a fixed length and having long shared prefixes is a huge difference! There is a good reason for this: not having keys be uniformly-distributed enables the tree to be _semantically iterable_. In Polkadot-SDK, you can iterate the entire storage for a module, or for a particular mapping within a module. This is a key part of what enables Polkadot-SDK's to support trustless upgrades: you can deploy migrations that automatically iterate and migrate (or delete) entire swathes of storage without needing anyone to freeze the chain, generate a list of keys to alter or delete, and so on. State systems where the keys for related storage entries are dispersed throughout a forest of other, unrelated keys cannot provide any automated migration mechanisms. This is a very intentional product decision, but it makes Preston's proposal incompatible in a couple ways.
 
-TODO: diagram - uniform distribution vs shared prefixes
+![](/assets/images/merklization_diagrams/uniform_vs_shared_1.svg)
+
+Here we visualize the difference between a trie containing uniformly distributed keys versus a trie with long shared prefixes and variable-length keys.
 
 -----
 
