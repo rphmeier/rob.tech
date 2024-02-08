@@ -7,8 +7,6 @@ twitter-image: TODO
 
 Recently, my friend and coworker [Sergei (Pepyakin)](https://pep.wtf) sent me an article from Preston Evans on the subject of a more optimal Merkle Trie format designed to be efficient on SSDs. The original article is [here](https://www.prestonevans.me/nearly-optimal-state-merklization/) and I highly recommend it as background reading to this post.
 
-TODO: twitter card https://twitter.com/sovereign_labs/status/1744768837982011472
-
 The optimizations presented in the original post sparked a two-day conversation with Pep in which we discussed how this might be made to work with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk) as well. Polkadot-SDK, while it also uses a Merkle Trie to store state, was designed on a differing set of assumptions, and so the original approach would need to be adapted in order to be integrated. This post might be seen as a summary of our conversation, covering some history, some of the original optimizations, the differences in assumptions, and tweaks that may be made in order to maintain full backwards compatibility with the Polkadot-SDK. Some familiarity with [Merkle Tries](https://en.wikipedia.org/wiki/Merkle_tree), especially as they are used as blockchain state databases, will help in comprehending this article, but all are welcome to come along for the ride.
 
 Preston's proposed system, in a nutshell, is a new binary Merkle Trie format and database schema that is extremely low-overhead and amenable to SSDs with most (if not all) disk accesses being predictable with no other information beyond the key being queried. We'll revisit more specifics later, though I highly recommend reading the original blog post for a high-fidelity explanation. 
@@ -61,11 +59,11 @@ Each node has a representation which occupies only 32 bytes: it's a hash, with t
 
 ![](/assets/images/merklization_diagrams/page_1.svg)
 
-This diagram shows a scaled-down version of the page, but the property of having 64 bytes over holds for all N.
+This diagram shows a scaled-down version of the page structure from the proposal.
 
 When keys are fixed-length, value-carrying nodes can never have children - they are always leaves. Therefore, to query a value stored under a key, you must load all the nodes leading up to that key. Due to the page structure, this also implies loading that node's siblings, as well as all the sibling nodes along the path. Having the path and all the sibling nodes to a key, or set of keys, is all the information that is needed to update a binary Merkle trie. 
 
-One problem that arises in binary merkle tries due to long shared prefixes is long traversals, assuming that your only two kinds of nodes are leaf nodes and branch nodes. Many Polkadot-SDK keys start with 256-bit shared prefixes - with these usage patterns, you'd traverse through 256 layers of the binary trie before even getting to a differentiated part. Luckily, Ethereum and Polkadot-SDK have already worked around this issue with an approach known as **extension nodes**. These nodes encode a long shared run of bits which all descendants of the node contain as part of their path. These work slightly differently in Ethereum and Polkadot-SDK, but achieve the same effect. Systems like Jellyfish have gotten rid of them entirely, because if your keys are uniformly distributed the odds of having long shared prefixes in a crowded trie are pretty small. But in the Polkadot-SDK model they still make sense. 
+One problem that arises in binary merkle tries due to long shared prefixes is long traversals, assuming that your only two kinds of nodes are leaf nodes and branch nodes. Many Polkadot-SDK keys start with 256-bit shared prefixes - with these usage patterns, you'd traverse through 256 layers of the binary trie before even getting to a differentiated part. Luckily, Ethereum and Polkadot-SDK have already worked around this issue with an approach known as **extension nodes**. These nodes encode a long shared run of bits which all descendants of the node contain as part of their path. These work slightly differently in Ethereum and Polkadot-SDK, but achieve the same effect. Systems like Jellyfish have gotten rid of them entirely, because if your keys are uniformly distributed the odds of having long shared prefixes in a crowded trie are pretty small. But in the Polkadot-SDK model extension nodes still make sense. 
 
 These properties to uphold, assumptions to relax, and usage patterns to support let us finally arrive to a sketch of the solution. First, we will turn our variable-length keys into fixed-length keys with a **uniform and logically large size** with an **efficient padding mechanism**. Second, we will **introduce extension nodes without substantially increasing disk accesses**.
 
@@ -84,13 +82,15 @@ We can do this with the following algorithm:
   2. Append the length of the original key represented as an N-bit number
   3. Append `0`s to it until its length equals 2^N
 
-TODO: diagram
+![](/assets/images/merklization_diagrams/padding_1.svg)
+
+The diagram shows the case where N=4. In practice a larger N should be used.
 
 This mapping gives us 2 desirable properties:
   1. No ambiguity. There are no 2 inputs which give the same output.
   2. The input key is kept as a prefix of the generated one. This preserves the shared prefixes in the original input keys that allow for iteration under shared prefixes.
 
-However, it does not preserve a strict lexicographic ordering. It is almost perfect, but the lexicographic order when one key is a prefix of another is not preserved. If there are two keys, A and B, where A is a prefix of B, it is possible that pad(B) < pad(A). For example, with N=4 `111` would be padded to `1110_00110_0000_0000` and this will be sorted after the padded version of `11100000`, which is `1110_0000_1000_0000`.
+However, it does not preserve a strict lexicographic ordering. It is almost perfect, but the lexicographic order when one key is a prefix of another is not preserved. If there are two keys, A and B, where A is a prefix of B, it is possible that pad(B) < pad(A). For example, with N=4, `111` would be padded to `1110_00110_0000_0000` and this will be sorted after the padded version of `11100000`, which is `1110_0000_1000_0000`.
 
 If we were to put the length at the very end of the padding instead of directly after the initial key, we'd have preserved a full lexicographic ordering. But it would also lead to pairs of keys like `111` and `1110` being converted to lookup paths with extremely long shared prefixes - implying longer traversals. In practice this might be acceptable, as Polkadot-SDK doesn't produce these types of pairs storage keys. But it'd have very bad worst-case scenario, even with extension nodes.
 
@@ -156,8 +156,10 @@ The next problem to solve is how to store the data of an extension node in our p
 
 We still need to store that 64-byte partial path somewhere. It turns out we can store it directly under the extension node. Because extensions with 1 bit are illegal, and the children of the extension are stored in the page implied by their partial key, the slots for storing the nodes directly beneath the extension will be empty. We can use these two 32-byte slots to store the 64-byte partial key. When the extension node itself is at the bottom layer of the page, the partial key will be stored on the next page. There are possible fancier schemes to avoid this, such as finding empty locations within the current page to squirrel away the partial key - spaces under leaves and empty-subtrie markers can be overwritten. But that adds loads of complexity for little real gain: when the difference in the amount of pages we need to traverse is 1, what matters is whether we can pre-fetch the required pages from the SSD more so than how many pages we load. Modern SSDs are good at parallel reading.
 
-TODO: diagram (storing extension nodes, partial key, and children)
+![](/assets/images/merklization_diagrams/extension_1.svg)
 
-The last issue is related: the fact that extensions can introduce gaps in the necessary pages to load could be a huge problem. An extension node located in a page of depth 2, which encodes a partial path of length 60, would land the child nodes of the extension squarely in page 12. We can no longer just pre-fetch the first N pages as computed from the key's lookup path and expect to find a terminal there. This is a general issue which would be a showstopper if not for the practical workload that the Polkadot-SDK imposes on the trie: there are relatively few shared prefixes, so we can just cache the "page paths" for all of them.
+This diagram shows how the 64-byte child path is stored in the 2 32-byte slots directly "under" the extension node, even if that's a separate page, and that the children of this node are stored in the same place they would be even if the extension node didn't exist. 
+
+The last issue we need to deal with is related: the fact that extensions can introduce gaps in the necessary pages to load erodes our ability to infer which pages must be loaded. An extension node located in a page of depth 2, which encodes a partial path of length 60, would land the child nodes of the extension squarely in page 12. We can no longer just pre-fetch the first N pages as computed from the key's lookup path and expect to find a terminal there. This is a general issue which would be a showstopper if not for the practical workload that the Polkadot-SDK imposes on the trie: there are relatively few shared prefixes, so we can just cache the "page paths" for all of them.
 
 A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 different storage maps or values, for a total of ~550 common shared prefixes. When there are only a few hundred or even a few thousand shared storage prefixes, it's pretty trivial to keep an in-memory cache which tells us which pages you need to load to traverse to the end of some common prefix. Caching becomes intractable somewhere in the millions of shared prefixes. Then you can also run a simple pre-processsing on every queried key to see which shared prefixes match, if any. For the Polkadot-SDK workload, this will keep our SSD page-loads perfectly predictable just from the key. For a smart contract workload it would be better to incorporate a "child trie" approach, where each smart contract has its own state trie.
