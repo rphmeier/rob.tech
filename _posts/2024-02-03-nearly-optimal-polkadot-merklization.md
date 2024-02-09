@@ -113,7 +113,7 @@ Note that while it is theoretically possible to invert the mapping and go from o
 
 To handle the case of long shared prefixes in storage keys, we will introduce extension nodes which encode long partial lookup paths.
 
-The first challenge to solve in introducing extension nodes is to add a third kind of node, beyond branches and leaves. Most trie implementations encode the type of node with a discriminant preceding the encoded value of the node, by using code that looks like this:
+The first challenge to solve in introducing extension nodes is to add a third kind of node, beyond branches and leaves. This requires a change in how we represent the nodes, so we can distinguish extensions from branches and leaves. Most trie implementations encode the type of node with a discriminant preceding the encoded value of the node, by using code that looks like this:
 
 ```rust
 enum Node {
@@ -134,6 +134,8 @@ So to add a 3rd kind of node, we extend the domain separation to 2 bits with the
   2. If the hash starts with `01` the node is a leaf.
   3. If the hash starts with `10` the node is an extension.
   4. The hash cannot legally start with `11`.
+
+The one exception here is that if the hash is zeroed-out completely, it denotes an empty sub-trie.
 
 But what is an extension node? Its logical structure will be this:
 
@@ -159,8 +161,12 @@ We still need to store that 64-byte partial path somewhere. It turns out we can 
 
 ![](/assets/images/merklization_diagrams/extension_1.svg)
 
-This diagram shows how the 64-byte child path is stored in the 2 32-byte slots directly "under" the extension node, even if that's a separate page, and that the children of this node are stored in the same place they would be even if the extension node didn't exist. 
+This diagram shows how the 64-byte child path is stored in the 2 32-byte slots directly "under" the extension node, even if that's a separate page, and that the children of this node are stored in the same place they would be even if there were no extension nodes.
 
 The last issue we need to deal with is related: the fact that extensions can introduce gaps in the necessary pages to load erodes our ability to infer which pages must be loaded. An extension node located in a page of depth 2, which encodes a partial path of length 60, would land the child nodes of the extension squarely in page 12. We can no longer just pre-fetch the first N pages as computed from the key's lookup path and expect to find a terminal there. This is a general issue which would be a showstopper if not for the practical workload that the Polkadot-SDK imposes on the trie: there are relatively few shared prefixes, so we can just cache the "page paths" for all of them.
 
-A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 different storage maps or values, for a total of ~550 common shared prefixes. When there are only a few hundred or even a few thousand shared storage prefixes, it's pretty trivial to keep an in-memory cache which tells us which pages you need to load to traverse to the end of some common prefix. Caching becomes intractable somewhere in the millions of shared prefixes. Then you can also run a simple pre-processsing on every queried key to see which shared prefixes match, if any. For the Polkadot-SDK workload, this will keep our SSD page-loads perfectly predictable just from the key. For a smart contract workload it would be better to incorporate a "child trie" approach, where each smart contract has its own state trie.
+A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 different storage maps or values, for a total of ~550 common shared prefixes. When there are only a few hundred or even a few thousand shared storage prefixes, it's pretty trivial to keep an in-memory cache which tells us which pages you need to load to traverse to the end of some common prefix. Caching becomes intractable somewhere in the millions of shared prefixes, but that is well beyond any practical use of the Polkadot-SDK. For the Polkadot-SDK workload, our SSD page-loads will be perfectly predictable just from the key. For a smart contract workload it would be better to incorporate a "child trie" approach, where each smart contract has its own state trie.
+
+-----
+
+To summarize: by introducing a padding scheme, extension nodes, and caching, we can create a super SSD-friendly State Trie that is compatible with the assumptions of the Polkadot-SDK. This still inherits the assumption that we only need to store one revision of the Trie on disk and so isn't suitable for archive nodes. 
