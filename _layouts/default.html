@@ -9,13 +9,7 @@
   <meta name="author" content="{{ page.author | default: site.author | escape }}">
   <meta name="generator" content="Jekyll v{{ jekyll.version }}">
   <link rel="canonical" href="{{ page.url | absolute_url }}">
-  {% if site.minimal %}
-  <link rel="stylesheet" href="{{ "/assets/css/minimal.css" | relative_url }}">
-  {% else %}
-  <link rel="stylesheet" href="{{ "/assets/css/index.css" | relative_url }}">
-  {% endif %}
-  <link rel="stylesheet" href="{{ "/assets/css/classes.css" | relative_url }}">
-  {% if site.sidebar %}<link rel="stylesheet" href="{{ "/assets/css/sidebar.css" | relative_url }}" media="screen and (min-width: 70em)">{% endif %}
+  <link rel="stylesheet" href="{{ "/assets/css/main.css" | relative_url }}">
   {% if site.plugins contains "jekyll-feed" %}<link rel="alternate" href="{{ site.feed.path | default: "/feed.xml" | relative_url }}" type="application/atom+xml" title="{{ site.title }}">{% endif %}
   {% if page.mathjax or site.mathjax %}
   <link rel="stylesheet" href="{{ "/assets/katex/katex.min.css" | relative_url }}">
@@ -23,38 +17,27 @@
   <script defer src="{{ "/assets/katex/contrib/mathtex-script-type.min.js" | relative_url }}"></script>
   {% endif %}
   <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-  {% if site.comments.disqus_shortname and page.layout == "post" %}<script src="//{{ site.comments.disqus_shortname }}.disqus.com/embed.js" async></script>{% endif %}
-  {% if site.comments.isso_domain and page.layout == "post" %}<script data-isso="http://{{ site.comments.isso_domain }}" src="//{{ site.comments.isso_domain }}/js/embed.min.js"></script>{% endif %}
   {% include twitter-meta.html %}
 </head>
 <body>
-  <div class = content>
-    <header class="icons">
-      {% unless site.show_title != true and site.navigation and site.external %}
-        <a href="{{ "/" | relative_url }}" class="title">{{ site.title | escape }}</a>
-      {% endunless %}
-      {% if site.navigation or site.external %}
-        {% include menu.html menu=site.navigation icons=false %}
-      {% else %}
-        {% assign pages = site.pages | where_exp: "item", "item.title and item.sitemap != false" | sort: "order" %}
-        {% include menu.html menu=pages %}
-      {% endif %}
-      {% if site.sidebar and site.show_description %}
-        <div class="hidden description">{{ site.description }}</div>
-      {% endif %}
-    </header>
-
+  <header class="bg-white max-w-prose mx-auto items-center">
+    {% include menu.html menu=site.navigation icons=false %}
+  </header>
+  <hr>
+  <main class="bg-white max-w-prose mx-auto items-center py-10">
     {{ content }}
-  </div>
+  </main>
+
+  <hr class="my-5">
 
   <hr>
 
   <footer>
-    <div class="icons small">
-      {% include menu.html menu=site.external icons=true %}
+    <div class="flex flex-col mr-5">
+      {% include footer.html %}
     </div>
-    <p>Copyright 2024 Robert Habermeier</p>
-  </footer>
+  </footer> 
+
 </body>
 
 </html>

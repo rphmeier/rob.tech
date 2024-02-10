@@ -16,13 +16,6 @@ show_related: false          # show the previous and next links after every post
 show_description: true       # show the site description in the sidebar
 show_title: false            # always keep the site title visible
 
-# Styling
-
-dark_header: false           # always keep the header dark
-minimal: false               # use simpler style
-
-cardShadowLines: true        # card shadows dimmed with texture
-
 # MathJax, please
 mathjax: true
 
@@ -37,13 +30,9 @@ navigation:
   - {file: "index.html"}
   - {file: "blog.html"}
 
-#  - {title: Mail, icon: envelope, url: "mailto:niklasbuschmann@users.noreply.github.com"}
-#  - {title: Github, icon: github, url: "https://github.com/niklasbuschmann/contrast"}
-#  - {title: Subscribe, icon: rss, url: "/feed.xml"}
-
-comments:
-#  disqus_shortname: ""      # see https://disqus.com/
-#  isso_domain: ""           # see https://posativ.org/isso/
-
 plugins:
  - jekyll-feed
+ - jekyll-postcss
+
+postcss:
+ cache: false

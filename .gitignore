@@ -6,3 +6,4 @@ Gemfile.lock
 _site
 *.gem
 .jekyll-metadata
+node_modules/

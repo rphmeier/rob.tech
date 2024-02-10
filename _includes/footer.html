@@ -1,0 +1,21 @@
+<nav class="flex justify-end">
+{% for item in site.external %}
+{%- assign node = site.pages | where: "name", item.file | first -%}
+{%- assign url = item.url | default: node.url -%}
+{%- assign title = item.title | default: node.title -%}
+<a 
+    aria-label="{{ title }}"
+    href="{{ url | relative_url }}"
+    
+    {% if item.url %}
+    target="_blank"
+    {% endif %}
+
+    {% if url == page.url %}
+    {% endif %}
+>
+<svg aria-hidden="true" class="size-10 hover:invert-[.33]"><use xlink:href="{{ "/assets/fontawesome/icons.svg" | relative_url }}#{{ item.icon }}"></use></svg>
+</a>
+{% endfor %}
+</nav>
+<p class="flex justify-end mt-1">Copyright 2024 Robert Habermeier</p>
