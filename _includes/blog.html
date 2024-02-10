@@ -1,18 +1,18 @@
 {%- assign posts = paginator.posts | default: site.posts -%}
 {%- assign num_posts = paginator.total_posts | default: 0 -%}
+<article>
 {% for post in posts %}
-  <article class="post-preview">
-    <div class="shadow-box">
-      <div class="shadow-color"></div>
-      <div class="shadow-overlay"></div>
-      <div class="shadow-mask"></div>
+  <a href="{{ post.url | relative_url }}">
+    <div class="border-2 shadow-md rounded-md p-6 mt-2 hover:border-blue-800">
+      {%- assign date_format = site.date_format | default: "%B %d, %Y" -%}
+      <h2 class="text-xl pb-3"><strong>{{ post.title }}</strong></h2>
+      <time datetime="{{ post.date | date_to_xmlschema }}"><strong>{{ post.date | date: date_format }}</strong></time>
+      <p class="pt-3 text-stone-700">{{ post.excerpt }}</p>
     </div>
-
-    {% include meta.html post=post preview=true %}
-    {{ post.excerpt }}
-    <div class="more"><a href="{{ post.url | relative_url }}"></a></div>
-  </article>
+  </a>
 {% endfor %}
+
+</article>
 
 {% if paginator.total_pages > 1 %}
   <footer>
