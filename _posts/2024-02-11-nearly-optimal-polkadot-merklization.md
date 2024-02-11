@@ -169,4 +169,4 @@ A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 diffe
 
 -----
 
-To summarize: by introducing a padding scheme, extension nodes, and caching, we can create a super SSD-friendly State Trie that is compatible with the assumptions of the Polkadot-SDK. This still inherits the assumption that we only need to store one revision of the Trie on disk and so isn't suitable for archive nodes. 
+To summarize: by introducing a padding scheme, extension nodes, and caching, we can create a super SSD-friendly State Trie that is compatible with the assumptions of the Polkadot-SDK. This still inherits the assumption that we only need to store one revision of the Trie on disk and so isn't suitable for archive nodes. Migrating a running Polkadot-SDK chain to use this database would require a total storage migration to the new format. 
