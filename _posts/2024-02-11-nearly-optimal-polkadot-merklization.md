@@ -2,6 +2,7 @@
 title: "Nearly Optimal State Merklization (in Polkadot-SDK)"
 layout: post
 excerpt: "Building upon ideas for a novel Merkle Trie database"
+twitter-image: "https://www.rob.tech/assets/images/merklization_diagrams/extension_1.svg"
 ---
 
 Recently, my friend and coworker [Sergei (Pepyakin)](https://pep.wtf) sent me an article from Preston Evans on the subject of a more optimal Merkle Trie format designed to be efficient on SSDs. The original article is [here](https://www.prestonevans.me/nearly-optimal-state-merklization/) and I highly recommend it as background reading to this post.
