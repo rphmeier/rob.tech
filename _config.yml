@@ -7,6 +7,14 @@ excerpt_separator: "\n\n\n"
 date_format: "%B %d, %Y"
 url: "https://rob.tech"
 
+exclude:
+  - package.json
+  - postcss.config.js
+  - tailwind.config.js
+  - UNLICENSE.txt
+  - yarn.lock
+  - jekyll/
+
 # Layout
 
 fixed_menu: true
