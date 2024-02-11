@@ -6,6 +6,11 @@ excerpt: "Building upon ideas for a novel Merkle Trie database"
 
 Recently, my friend and coworker [Sergei (Pepyakin)](https://pep.wtf) sent me an article from Preston Evans on the subject of a more optimal Merkle Trie format designed to be efficient on SSDs. The original article is [here](https://www.prestonevans.me/nearly-optimal-state-merklization/) and I highly recommend it as background reading to this post.
 
+<div class="flex justify-center">
+  <blockquote class="twitter-tweet"><p lang="en" dir="ltr">Building state commitments is the biggest bottleneck for most blockchains today. Here at Sovereign, we’ve been working on a new design that should speed up state merklization by a factor of 10 or more.<br><br>Why is this such a big deal?<br><br>Creating a state commitment allows for… <a href="https://t.co/Ef1UGRs5YK">pic.twitter.com/Ef1UGRs5YK</a></p>&mdash; Sovereign (@sovereign_labs) <a href="https://twitter.com/sovereign_labs/status/1744768837982011472?ref_src=twsrc%5Etfw">January 9, 2024</a></blockquote>
+  <script async src="https://platform.twitter.com/widgets.js" charset="utf-8"></script> 
+</div>
+
 The optimizations presented in the original post sparked a two-day conversation with Pep in which we discussed how this might be made to work with the [Polkadot-SDK](https://github.com/paritytech/polkadot-sdk) as well. Polkadot-SDK, while it also uses a Merkle Trie to store state, was designed on a differing set of assumptions, and so the original approach would need to be adapted in order to be integrated. This post might be seen as a summary of our conversation, covering some history, some of the original optimizations, the differences in assumptions, and tweaks that may be made in order to maintain full backwards compatibility with the Polkadot-SDK. Some familiarity with [Merkle Tries](https://en.wikipedia.org/wiki/Merkle_tree), especially as they are used as blockchain state databases, will help in comprehending this article, but all are welcome to come along for the ride.
 
 Preston's proposed system, in a nutshell, is a new binary Merkle Trie format and database schema that is extremely low-overhead and amenable to SSDs with most (if not all) disk accesses being predictable with no other information beyond the key being queried. We'll revisit more specifics later, though I highly recommend reading the original blog post for a high-fidelity explanation. 
@@ -170,3 +175,5 @@ A Polkadot-SDK runtime might have 50 pallets (modules), which each have 10 diffe
 -----
 
 To summarize: by introducing a padding scheme, extension nodes, and caching, we can create a super SSD-friendly State Trie that is compatible with the assumptions of the Polkadot-SDK. This still inherits the assumption that we only need to store one revision of the Trie on disk and so isn't suitable for archive nodes. Migrating a running Polkadot-SDK chain to use this database would require a total storage migration to the new format. 
+
+Thanks to Sergei (Pepyakin) and Preston Evans for discussion and clarifications leading up to this article.
