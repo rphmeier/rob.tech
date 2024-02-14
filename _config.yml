@@ -37,7 +37,7 @@ external:                    # see http://fontawesome.com/icons
   - {title: RSS, icon: rss-square, url: "/feed.xml"}
 
 navigation:
-  - {file: "index.html"}
+  - {file: "index.md"}
   - {file: "blog.html"}
 
 plugins:
