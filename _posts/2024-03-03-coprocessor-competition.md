@@ -7,7 +7,7 @@ twitter-image: ""
 
 ![](/assets/images/proofs_vs_incentives/PriceElasticity.svg)
 
-Last night I had the opportunity to speak at [NEBRA](https://www.nebra.one/)'s "Proof Singularity" event as part of a "heated debate" on the relative merits of programmable cryptography and programmable incentive systems - in the context of scaling blockchains. The panel was recorded, and while I recommend watching the video once it's live, I'll also lay out my arguments for the relative merits of cryptoeconomic coprocessors here.
+Last night I had the opportunity to speak at [NEBRA](https://www.nebra.one/)'s "Proof Singularity" event as part of a "heated debate" (actually, it was very friendly) on the relative merits of programmable cryptography and programmable incentive systems - in the context of scaling blockchains. The panel was recorded, and while I recommend watching the video once it's live, I'll also lay out my arguments for the relative merits of cryptoeconomic coprocessors in more detail here.
 
 Our discussion is largely about **coprocessors**, which are a category of systems that can perform computations off-chain while proving or otherwise guaranteeing their results on-chain. A ZK coprocessor is one which uses Zero-Knowledge techniques to produce succintly verifiable cryptographic proofs of computations. A cryptoeconomic coprocessor is one which uses value-at-stake and an interactive protocol to provide strong guarantees of a computation's correctness.
 
