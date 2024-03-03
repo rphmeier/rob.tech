@@ -7,7 +7,7 @@ twitter-image: ""
 
 Last night I had the opportunity to speak at [NEBRA](https://www.nebra.one/)'s "Proof Singularity" event as part of a "heated debate" on the relative merits of programmable cryptography and programmable incentive systems - in the context of scaling blockchains. The panel was recorded, and while I recommend watching the video once it's live, I'll also lay out my arguments for the relative merits of cryptoeconomic coprocessors here.
 
-Let's cut to the chase. I believe that the most likely future is one where cryptoeconomic coprocessors accumulate demand up to the level of price of ZK coprocessing, and all remaining demand spills over into ZK coprocessing.
+Let's cut to the chase. I believe that the most likely future is one where cryptoeconomic coprocessors will accumulate usage up to the level of price of ZK coprocessing, and all remaining demand spills over into ZK coprocessing. The open questions are just about how much demand it takes to saturate cryptoeconomic coprocessors.
 
 Proof Aggregation is a technology so powerful that it can feel like it's bordering on magic. To briefly recap, it enables practically unlimited amounts of zero-knowledge proofs to be aggregated into a single small proof that can be extremely cheaply verified. When used in a blockchain context, this means that enormous amounts of computation can be proven and aggregated off-chain and a very small "receipt" of all of these computations can be posted to the blockchain to verify, while placing scarcely any load on the blockchain nodes themselves. Nifty.
 
