@@ -2,7 +2,7 @@
 title: "Coprocessor Market Structure: Cryptoeconomic vs ZK"
 layout: post
 excerpt: "Cost differentials create opportunity"
-twitter-image: ""
+twitter-image: "https://rob.tech/assets/images/proofs_vs_incentives/price-elasticity.png"
 ---
 
 <figure>
@@ -12,7 +12,7 @@ twitter-image: ""
 
 Last night I had the opportunity to speak at [NEBRA](https://www.nebra.one/)'s "Proof Singularity" event as part of a friendly "heated debate" on the relative merits of programmable cryptography and programmable incentive systems - in the context of scaling blockchains. We spoke, in effect if not in name, about coprocessors, and what the resounding effects of ZK on validated computation would be. The panel was recorded, and while I recommend watching the video once it's live, I'll also lay out my predictions of the market structure of coprocessors in more detail here. 
 
-Our discussion is largely about **coprocessors**, which are a category of systems that can perform computations off-chain while proving or otherwise guaranteeing their results on-chain. A ZK coprocessor is one which uses Zero-Knowledge techniques to produce succintly verifiable cryptographic proofs of computations. A cryptoeconomic coprocessor is one which uses value-at-stake and an interactive protocol to provide strong guarantees of a computation's correctness. For a deeper primer on cryptoeconomic coprocessors, I recommend a look into [this article from Polytope Labs](https://blog.polytope.technology/cryptoeconomic-coprocessors). The challenge I have given myself here is this: **I will make extremely strong assumptions about the possible future of cryptographic coprocessors, and evaluate the future market structure for coprocessors**.
+Our discussion is largely about **coprocessors**, which are a category of systems that can perform computations off-chain while proving or otherwise guaranteeing their results on-chain. A ZK coprocessor is one which uses Zero-Knowledge techniques to produce succintly verifiable cryptographic proofs of computations. A cryptoeconomic coprocessor is one which uses value-at-stake and an interactive protocol to provide strong guarantees of a computation's correctness. For a deeper primer on cryptoeconomic coprocessors, I recommend a look into [this article from Polytope Labs](https://blog.polytope.technology/cryptoeconomic-coprocessors). The challenge I have given myself here is this: **I will make extremely strong assumptions about the possible future of cryptographic coprocessors, and evaluate the future market structure for coprocessors on that basis**.
 
 I'll insert a brief detour to address the point that ZK coprocessors and cryptoeconomic ones are not identical in capabilities. This is true. Despite that, they are substitutable for many use-cases. ZK coprocessors are able to handle large quantities of data without imposing additional overhead on the blockchain, which implies that cryptoeconomic coprocessors will be better for tasks that are relatively computation-heavy rather than data-heavy. ZK, notably, can also provide user privacy. On the other hand, cryptoeconomic coprocessors have access to hash functions, cryptography, data structures, memory layouts, and hardware advantages that ZK ones don't. They're not exactly the same, and so they are only partially-substitutable.
 
