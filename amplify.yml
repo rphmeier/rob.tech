@@ -3,6 +3,7 @@ frontend:
   phases:
     preBuild:
       commands:
+        - gem install bundler
         - bundle install
     build:
       commands:
