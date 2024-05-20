@@ -6,8 +6,9 @@ twitter-image: "https://rob.tech/assets/images/introducing_nomt/io_nomt_64.png"
 ---
 
 Today, [we (Thrum)](https://thrum.dev) are introducing our first Proof-of-Concept of NOMT, the Nearly-Optimal Merkle Trie
-Database. The design for this database is inspired by this [blog post by Preston Evans](https://sovereign.mirror.xyz/jfx_cJ_15saejG9ZuQWjnGnG-NfahbazQH98i1J3NN8) of
-Sovereign Labs, and our implementation has been funded with a grant from Sovereign Labs.
+Database. NOMT is inspired by this [blog post by Preston Evans](https://sovereign.mirror.xyz/jfx_cJ_15saejG9ZuQWjnGnG-NfahbazQH98i1J3NN8) of
+Sovereign Labs, and we are targeting Sovereign-SDK as the first user. Sovereign Labs has funded
+the implementation work with a grant.
 
 NOMT is a permissively-licensed, single-state, merklized key-value database targeted at modern SSDs, 
 optimized for fast read access, fast witnessing, and fast updating. NOMT supports efficient merkle 
@@ -15,7 +16,7 @@ multi-proofs of reads and updates. It is intended to be embedded into blockchain
 is unopinionated on data format. Our vision for NOMT is for it to become the primary state database 
 driver for performant blockchain nodes everywhere.
 
-Against a database of 2^27 (~128M) accounts and a single-threaded execution engine, NOMT can read, 
+Against a database of 2^27 (~134M) accounts and a single-threaded execution engine, NOMT can read, 
 modify, commit, prove, and write an update of 50,000 accounts in 1151 milliseconds, with a peak SSD 
 read of 2.42G/s and a peak SSD write of 822MB/s. The actual trie commit, prove, and write operation 
 takes only 431ms, so the main bottleneck is reading state during execution, not merklization. See the last section for more information 
@@ -69,7 +70,7 @@ NOMT has been built according to the following design goals:
 2. **Pre-fetch merkle trie data aggressively**. Modern SSDs are particularly good at parallel 
     fetches. We optimize for having as many parallel, in-flight requests for merkle trie data as 
     possible at any given time, even going as far as pre-fetching trie data based on hints from
-    the user's reads and writes before block execution has even concluded.
+    the user's reads and writes before block execution has concluded.
 3. **Update the trie and generate witnesses while waiting on the SSD**. Reading from an SSD necessarily 
     incurs some  latency. We keep the CPU busy whenever we are waiting on data, so updates are
     "free" and wedged between SSD read waits.
@@ -177,6 +178,9 @@ sov-db
 22:59:52
 ```
 
+sov-db is based off of the Jellyfish Merkle Trie implementation from Diem/Aptos and inherits quite a 
+lot of their code, with some modifications by Penumbra and Sovereign.
+
 <figure>
     <img src="/assets/images/introducing_nomt/io_sov_db.png" />
 </figure>
@@ -184,10 +188,16 @@ sov-db
 ## Interpreting the Results
 
 NOMT is the clear winner, but still has quite a lot of head room. Note that the 64 reader threads
-are mostly idle and are a result of using synchronous disk I/O APIs - using more threads enables us to saturate the SSD's I/O queue, but the same effect could be achieved with fewer threads and an async I/O backend like `io_uring` or `io_submit`.
+are mostly idle and are a result of using synchronous disk I/O APIs - using more threads enables us 
+to saturate the SSD's I/O queue, but the same effect could be achieved with fewer threads and 
+an async I/O backend like `io_uring` or `io_submit`.
 
 sp-trie has an extremely low random read speed, because it traverses the merkle trie on each read.
-sov-db has a flat store like NOMT, but has much more data due to being an archival database and keeps the trie nodes in the same RocksDB "column" as the trie nodes. This leads to slower reads.
+This is exactly why we have chosen to keep a flat store for key-value pairs, so as not to block
+execution on trie traversals.
+
+sov-db has a flat store like NOMT, but has much more data due to being an archival database and 
+keeps the trie nodes in the same RocksDB "column" as the trie nodes. This leads to slower reads.
 
 NOMT's peak read of 2415MiBs is equal to the value given with a `fio` run on the same machine and corresponds to 618k IOPS:
 
@@ -204,12 +214,20 @@ fiotest: (groupid=0, jobs=16): err= 0: pid=3382952: Sun May 19 14:35:18 2024
      lat (usec): min=15, max=9399, avg=827.79, stdev=456.99
 ```
 
-This implies that NOMT is close to maximizing this SSD's throughput, but not consistently. The typical disk read throughput is around 300MiB/s, corresponding to only ~75k IOPS. It is
-also still short of the total 1M IOPS advertised by the manufacturer.
+Notably, all databases we benchmarked have a large read spike at the beginning. This is likely
+an artifact of RocksDB.
 
-In any case, we are reaching a point where state merklization is not the main bottleneck, and state read performance is - meaning that nodes using NOMT could reach throughtput levels akin to Solana without compromising on performance.
+NOMT's typical disk read throughput is around 300MiB/s, corresponding to only ~75k IOPS. It is
+also still quite short of the total 1M IOPS advertised by the manufacturer. Our goal is to utilize
+all these IOPS with a custom disk backend.
+
+In any case, we are reaching a point where state merklization is not the main bottleneck, and state 
+read performance is - meaning that nodes using NOMT could reach throughtput levels in the same
+neighborhood as Solana without compromising on performance, state merklization, or greatly 
+increasing hardware requirements.
 
 Optimizing state read (as opposed to merkle trie read) performance is somewhat beyond the scope of 
 NOMT. Using multiple threads rather than a single thread would likely yield better performance to parallelize state reads. In a blockchain setting, serializable execution and optimistic concurrency
 control may be used to achieve this.
 
+Watch this space as we max out SSD throughput with NOMT.
