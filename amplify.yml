@@ -10,5 +10,5 @@ frontend:
         - bundle exec jekyll build
   artifacts:
     files:
-        - **/*
+        - '**/*'
     baseDirectory: _site
