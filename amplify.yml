@@ -4,6 +4,7 @@ frontend:
     preBuild:
       commands:
         - gem install bundler
+        - yarn install
         - bundle install
     build:
       commands:
